@@ -1,0 +1,7 @@
+dist/
+*.user
+*.suo
+readiness.txt
+Backups/
+*.bin
+*.zip
