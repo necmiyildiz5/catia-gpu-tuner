@@ -1,0 +1,27 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: csharp
+          build-mode: manual
+      - name: Build
+        shell: powershell
+        run: .\Build.ps1
+      - uses: github/codeql-action/analyze@v4

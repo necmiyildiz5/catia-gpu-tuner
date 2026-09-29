@@ -54,6 +54,16 @@ The project needs Windows and the built-in .NET Framework x64 C# compiler. No th
 
 The automated tests cover a successful apply, selective restore, failed save, failed verification, rollback, cross-driver refusal and damaged backups. The project was also exercised on an RTX A5500 Laptop GPU with NVIDIA driver 596.71: readiness detection, CATIA profile resolution, application, read-back verification and restoration all passed.
 
+## Release security
+
+Every release contains a SHA-256 file. Verify a downloaded release before extraction:
+
+```powershell
+.\Verify-Release.ps1 -Zip .\CATIA-GPU-Tuner-vX.Y.Z-win-x64.zip -Sums .\CATIA-GPU-Tuner-vX.Y.Z-SHA256SUMS.txt
+```
+
+The project is dependency-free, makes no network requests and its GitHub workflow runs CodeQL analysis on every `main` update and weekly. The current EXE is unsigned; do not treat an unsigned Windows publisher prompt as proof of safety. See [SECURITY.md](SECURITY.md) and [THREAT-MODEL.md](THREAT-MODEL.md).
+
 ## License
 
 MIT. CATIA, 3DEXPERIENCE and NVIDIA RTX are trademarks of their respective owners. This project is independent and is not endorsed by Dassault Systèmes or NVIDIA.
