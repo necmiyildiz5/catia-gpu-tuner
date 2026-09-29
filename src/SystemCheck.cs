@@ -30,15 +30,15 @@ public static class SystemCheck {
   }
  }
  public static Readiness Inspect(){
-  var r=new Readiness();r.ControlPanel=ControlPanelInstalled();r.Lines.Add((r.ControlPanel?"✓":"!")+" NVIDIA Control Panel: "+(r.ControlPanel?"kurulu.":"bulunamadı. Microsoft Store/NVIDIA sürücü paketiyle kurun."));
+  var r=new Readiness();r.ControlPanel=ControlPanelInstalled();r.Lines.Add((r.ControlPanel?"✓":"!")+" NVIDIA Control Panel: "+(r.ControlPanel?UiText.L("kurulu.","installed."):UiText.L("bulunamadı. Microsoft Store/NVIDIA sürücü paketiyle kurun.","not found. Install it from Microsoft Store or the NVIDIA driver package.")));
   try { using(var d=new NvDriver()){
    r.Gpu=d.Gpus;r.Driver=d.Version;r.SupportedGpu=d.IsProfessionalCadGpu;
-   r.Lines.Add((r.SupportedGpu?"✓":"!")+" NVIDIA GPU: "+d.Gpus+" | sürücü "+d.Version);
-   if(!r.SupportedGpu)r.Lines.Add("Bu uygulama yalnızca NVIDIA RTX A serisi, RTX PRO ve Quadro RTX iş istasyonu GPU’ları için ayar yükler.");
+   r.Lines.Add((r.SupportedGpu?"✓":"!")+" NVIDIA GPU: "+d.Gpus+" | "+UiText.L("sürücü ","driver ")+d.Version);
+   if(!r.SupportedGpu)r.Lines.Add(UiText.L("Bu uygulama yalnızca NVIDIA RTX A serisi, RTX PRO ve Quadro RTX iş istasyonu GPU’ları için ayar yükler.","This app applies settings only for NVIDIA RTX A series, RTX PRO and Quadro RTX workstation GPUs."));
    foreach(var candidate in CadExecutables())try{var profile=d.Resolve(candidate);r.CadExe=candidate;r.Profile=profile;r.CadFound=true;r.ProfileFound=true;break;}catch{}
-  }}catch(Exception e){r.Reason=e.Message;r.Lines.Add("! NVIDIA sürücü erişimi: "+e.Message);}
-  if(r.CadFound)r.Lines.Add("✓ CAD uygulaması ve NVIDIA profili: "+Path.GetFileName(r.CadExe)+" → "+r.Profile);else r.Lines.Add("! CATIA/3DEXPERIENCE için eşleşen kurulum ve NVIDIA profili bulunamadı.");
-  if(!r.Ready)r.Reason=String.IsNullOrEmpty(r.Reason)?"Sistem destek koşullarını karşılamıyor; hiçbir ayar değiştirilmedi.":r.Reason;
+  }}catch(Exception e){r.Reason=e.Message;r.Lines.Add("! "+UiText.L("NVIDIA sürücü erişimi: ","NVIDIA driver access: ")+e.Message);}
+  if(r.CadFound)r.Lines.Add("✓ "+UiText.L("CAD uygulaması ve NVIDIA profili: ","CAD application and NVIDIA profile: ")+Path.GetFileName(r.CadExe)+" → "+r.Profile);else r.Lines.Add("! "+UiText.L("CATIA/3DEXPERIENCE için eşleşen kurulum ve NVIDIA profili bulunamadı.","No matching CATIA/3DEXPERIENCE installation and NVIDIA profile was found."));
+  if(!r.Ready)r.Reason=String.IsNullOrEmpty(r.Reason)?UiText.L("Sistem destek koşullarını karşılamıyor; hiçbir ayar değiştirilmedi.","The system does not meet the support requirements; no settings were changed."):r.Reason;
   return r;
  }
 }
