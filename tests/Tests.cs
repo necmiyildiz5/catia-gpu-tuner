@@ -21,15 +21,15 @@ class Tests {
  static void Assert(bool b,string s){if(!b)throw new Exception(s);count++;Console.WriteLine("PASS "+s);}
  static void Throws(Action action,string label){bool failed=false;try{action();}catch{failed=true;}Assert(failed,label);}
  static int Main(string[] args){try{string root=args[0];Directory.CreateDirectory(root);
-  var d=new Fake();string dir=Engine.Apply(d,"CNEXT.exe",true,root);Assert(d.Read("",Engine.Allowed[2]).Value==0x08416747,"Fast mode saved and verified");Assert(File.Exists(Path.Combine(dir,"driver-profiles.bin")),"Full snapshot created");
+  var d=new Fake();string dir=Engine.Apply(d,"CNEXT.exe",root);Assert(d.Read("",Engine.Allowed[2]).Value==0x08416747,"Performance profile saved and verified");Assert(File.Exists(Path.Combine(dir,"driver-profiles.bin")),"Full snapshot created");
   var file=Path.Combine(dir,"settings.json");var b=Engine.Load(file);Assert(b.Outcome=="AppliedAndVerified","Backup checksum and outcome");
   Engine.Restore(d,file,root);Assert(d.disk.Count==1&&d.disk[Engine.Allowed[0]].Value==0,"Rollback restores local value and removes absent overrides");
-  var fail=new Fake{FailSave=true};Throws(()=>Engine.Apply(fail,"CNEXT.exe",true,root),"Save failure reported");Assert(fail.disk.Count==1&&fail.disk[Engine.Allowed[0]].Value==0,"Save failure rollback");
-  var mismatch=new Fake{FailReadOnce=true};Throws(()=>Engine.Apply(mismatch,"CNEXT.exe",false,root),"Verification mismatch reported");Assert(mismatch.disk.Count==1&&mismatch.disk[Engine.Allowed[0]].Value==0,"Mismatch rollback");
+  var fail=new Fake{FailSave=true};Throws(()=>Engine.Apply(fail,"CNEXT.exe",root),"Save failure reported");Assert(fail.disk.Count==1&&fail.disk[Engine.Allowed[0]].Value==0,"Save failure rollback");
+  var mismatch=new Fake{FailReadOnce=true};Throws(()=>Engine.Apply(mismatch,"CNEXT.exe",root),"Verification mismatch reported");Assert(mismatch.disk.Count==1&&mismatch.disk[Engine.Allowed[0]].Value==0,"Mismatch rollback");
   b.Driver="other";Engine.Store(dir,b);Throws(()=>Engine.Restore(d,file,root),"Cross-driver restore blocked");
   File.AppendAllText(file,"tampered");Throws(()=>Engine.Load(file),"Damaged backup rejected");
   b.Before[0].Id=0xDEADBEEF;Throws(()=>Engine.Validate(b),"Unknown setting rejected");
-  Assert(Engine.Plan(false)[2].Target==0x60925292,"Balanced mode application VSync");
+  Assert(Engine.Plan()[2].Target==0x08416747,"Performance mode disables VSync");
   Console.WriteLine(count+" tests passed");return 0;
  }catch(Exception e){Console.WriteLine(e);return 1;}}
 }

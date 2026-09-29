@@ -1,69 +1,55 @@
 # CATIA GPU Tuner
 
-Independent Windows utility for **NVIDIA RTX driver readiness checks and CATIA application-profile tuning**. Turkish interface, change preview, verified writes, automatic backups and selective rollback.
+Small Windows utility that automatically checks an NVIDIA CAD workstation and, when ready, loads one verified CATIA performance profile. It asks the user to select nothing.
 
-**Certification is not automatically verified.** A working NVIDIA API or a newer driver is not proof of Dassault certification. Check your workstation, GPU, operating system and CATIA release together in the [official Dassault catalog](https://www.3ds.com/support/hardware-and-software).
+## What happens when it opens
 
-## Download and run
+1. Confirms NVIDIA Control Panel is installed.
+2. Detects the installed NVIDIA GPU and driver through NVIDIA's local driver API.
+3. Accepts only professional CAD GPU families: **NVIDIA RTX A series**, **NVIDIA RTX PRO**, and **NVIDIA Quadro RTX**.
+4. Locates installed `CNEXT.exe` or `3DEXPERIENCE.exe` under Dassault Systèmes program folders and resolves it to NVIDIA's existing CATIA/3DEXPERIENCE profile.
+5. Stops without changing anything if any check fails, CATIA is open, or the system is not in scope.
+6. Otherwise, backs up, applies and reads back the performance settings.
 
-Use the ZIP under [Releases](https://github.com/necmiyildiz5/catia-gpu-tuner/releases). Extract and run `CATIA-GPU-Tuner.exe`. Windows x64, .NET Framework 4.8 and an installed NVIDIA RTX driver are required. Inspection runs without elevation; applying/restoring settings requests administrator rights. The executable is unsigned.
+The app does not support GeForce RTX. It reports this clearly and leaves all settings unchanged.
 
-## Türkçe kullanım
+## Fixed CATIA performance profile
 
-1. NVIDIA Control Panel → **Adjust image settings with preview** → **Use the advanced 3D image settings** → Apply. Araç bu seçimi değiştirmez.
-2. Başlatıcı yerine gerçek CATIA EXE dosyasını seçin: genellikle kurulumun `win_b64/code/bin` klasöründeki `CNEXT.exe` veya `3DEXPERIENCE.exe`.
-3. **Sistemi incele**: GPU, sürücü, uygulama profili ve mevcut/önerilen değerleri kontrol edin. Tanınmayan uygulamaya yazma engellenir.
-4. CATIA'yı kapatın. **Yedekle ve uygula** ile değişiklikleri gözden geçirip onaylayın.
-5. Sonuç sürücüden tekrar okunarak doğrulanır. **Yedekten geri al**, önceki özel değerleri veya miras alınan ayar davranışını geri getirir.
+| NVIDIA application-profile setting | Applied value |
+| --- | --- |
+| Power management mode | Prefer maximum performance |
+| Frame rate limiter | Off |
+| Vertical sync | Off |
 
-## Profiles
+This profile favors viewport speed and can cause screen tearing. The application preserves global settings and the rest of NVIDIA's CATIA profile, including the manufacturer settings for antialiasing, threading, OpenGL GPU selection, shader cache, ECC and presentation method.
 
-| Setting | Balanced CAD | Smooth viewport |
-|---|---|---|
-| Power management | Prefer maximum performance | Prefer maximum performance |
-| Frame rate limiter | Off | Off |
-| Vertical sync | Application controlled | Off; possible tearing |
+The NVIDIA Control Panel preference you chose — **Use the advanced 3D image settings** — is never changed or reset by this app.
 
-Only these three settings in the NVIDIA-resolved CATIA application profile are changed. Existing global settings, advanced preview choice, NVIDIA workstation presets, threading, antialiasing and GPU selection remain intact. Several CATIA executable names may share the same driver profile and therefore be affected together.
+## Safety and backup
 
-The app deliberately preserves vendor-specific settings that have no universal fastest value. The Help tab explains power management, V-Sync, threading, antialiasing, GPU selection, Vulkan/OpenGL presentation, shader cache, texture filtering and ECC. No overclocking, driver installation, thermal changes, registry import or automatic power-plan changes.
+Before it writes, the app exports the complete NVIDIA DRS profile database and stores the original values for the three managed settings. It writes only those settings to the resolved CATIA profile, then opens a fresh driver session and verifies all values. A failed write triggers rollback. Backups are kept at `%LOCALAPPDATA%\\CatiaGpuTuner\\Backups`.
 
-## Driver checks and limits
+No driver installation, power-plan change, registry import, thermal control, overclock, voltage change or telemetry is included.
 
-- Detects RTX GPUs and installed driver version using the system NVIDIA API.
-- Checks live DRS access and resolves the selected executable to an existing CATIA/3DEXPERIENCE profile.
-- Clearly reports **certification not verified** and links to primary references.
-- Does not download a driver or claim the installed release is certified, latest, or fastest.
-- This is not a benchmark. Improvements depend on the model, display mode, temperature, CPU and other bottlenecks. Compare the same model before and after.
-- Windows DPI compatibility scaling is used for legible layouts on scaled displays.
+## Driver readiness versus certification
 
-## Backup design
+The readiness check means the local driver, NVIDIA Control Panel, supported GPU and CATIA profile are usable. It does **not** claim that the driver is Dassault-certified. Certification depends on the exact workstation, GPU, Windows and CATIA/3DEXPERIENCE release; check the [official Dassault certification catalog](https://www.3ds.com/support/hardware-and-software).
 
-Before each operation: full DRS binary export plus a JSON record of the three original setting values and whether each was a local override. JSON is checked against a SHA-256 sidecar (integrity check, not a signature). Backups stay in `%LOCALAPPDATA%/CatiaGpuTuner/Backups` and may contain application paths.
+## Run
 
-Restore only touches the three recorded settings. Inherited/default settings are restored by removing the added override. Cross-driver or cross-GPU restore is refused. Failed writes trigger an attempted rollback; rollback failure is reported explicitly. Do not run another profile editor during an operation. A hard process/OS crash cannot run automatic rollback; use the prepared backup afterward.
+Download the release ZIP, extract it, and start `CATIA-GPU-Tuner.exe`. The application requests administrator elevation because it writes NVIDIA driver settings. Close CATIA first. The EXE is unsigned.
 
 ## Build and test
 
-No third-party package restore required. On Windows, from PowerShell:
+The project needs Windows and the built-in .NET Framework x64 C# compiler. No third-party dependency download is required.
 
 ```powershell
-.\Build.ps1
-.\Test.ps1
+.\\Test.ps1
+.\\Build.ps1
 ```
 
-Uses the Windows .NET Framework x64 C# compiler. `dist/CATIA-GPU-Tuner.exe` is the output. Tests use a fake driver and do not modify GPU settings. They cover successful apply, selective restore, failed save, verification failure, rollback, cross-driver rejection and damaged/unknown backups.
+The automated tests cover a successful apply, selective restore, failed save, failed verification, rollback, cross-driver refusal and damaged backups. The project was also exercised on an RTX A5500 Laptop GPU with NVIDIA driver 596.71: readiness detection, CATIA profile resolution, application, read-back verification and restoration all passed.
 
-Read-only hardware check:
+## License
 
-```powershell
-.\dist\CATIA-GPU-Tuner.exe --check "$PWD\readiness.txt"
-```
-
-## References and license
-
-- [NVIDIA DRS API](https://docs.nvidia.com/nvapi/group__drsapi.html)
-- [NVIDIA Control Panel setting definitions](https://www.nvidia.com/content/Control-Panel-Help/vLatest/en-us/mergedProjects/nv3d/Manage_3D_Settings_(reference).htm)
-- [Dassault certified hardware and software](https://www.3ds.com/support/hardware-and-software)
-
-MIT license. CATIA, 3DEXPERIENCE and NVIDIA RTX are trademarks of their respective owners. This project is not affiliated with or endorsed by Dassault Systèmes or NVIDIA. No telemetry; the app only opens external links when requested.
+MIT. CATIA, 3DEXPERIENCE and NVIDIA RTX are trademarks of their respective owners. This project is independent and is not endorsed by Dassault Systèmes or NVIDIA.

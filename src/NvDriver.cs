@@ -33,6 +33,9 @@ public sealed class NvDriver : IDriver {
  [UnmanagedFunctionPointer(CallingConvention.Cdecl,CharSet=CharSet.Unicode)] delegate int FileCall(IntPtr s,string path);
  static IntPtr module; Query query; IntPtr session;
  public string Version {get;private set;} public string Gpus {get;private set;}
+ public bool IsProfessionalCadGpu {
+  get { return Gpus.IndexOf("RTX A",StringComparison.OrdinalIgnoreCase)>=0 || Gpus.IndexOf("RTX PRO",StringComparison.OrdinalIgnoreCase)>=0 || Gpus.IndexOf("Quadro RTX",StringComparison.OrdinalIgnoreCase)>=0; }
+ }
  T Fn<T>(uint id) where T:class {IntPtr p=query(id);if(p==IntPtr.Zero)throw new InvalidOperationException("Sürücü gerekli NVIDIA API işlevini sunmuyor.");return Marshal.GetDelegateForFunctionPointer(p,typeof(T)) as T;}
  static void Check(int code){if(code!=0)throw new InvalidOperationException("NVIDIA API hata kodu: "+code);}
  static IntPtr Buffer(int size){var p=Marshal.AllocHGlobal(size);Marshal.Copy(new byte[size],0,p,size);Marshal.WriteInt32(p,size|0x10000);return p;}
@@ -44,7 +47,6 @@ public sealed class NvDriver : IDriver {
   uint version;var branch=new StringBuilder(64);Check(Fn<VersionCall>(0x2926aaad)(out version,branch));Version=(version/100)+"."+(version%100).ToString("00");
   var handles=new IntPtr[64];int n;Check(Fn<GpuEnum>(0xe5ac921f)(handles,out n));var names=new System.Collections.Generic.List<string>();
   for(int i=0;i<n;i++){var name=new StringBuilder(64);Check(Fn<GpuName>(0xceee8e9f)(handles[i],name));names.Add(name.ToString());}Gpus=String.Join(" / ",names);
-  if(Gpus.IndexOf("RTX",StringComparison.OrdinalIgnoreCase)<0)throw new InvalidOperationException("Bu sürüm NVIDIA RTX GPU gerektirir. Algılanan: "+Gpus);
   Check(Fn<Create>(0x0694d52e)(out session));try{Reload();}catch{Dispose();throw;}
  }
  IntPtr Profile(string name){IntPtr p;Check(Fn<Find>(0x7e4a9a0b)(session,name,out p));return p;}

@@ -1,13 +1,14 @@
-# 1.0.0 — Initial release
+# 1.1.0 — Automatic CAD workstation profile
 
-- Turkish Windows interface and detailed settings help.
-- Live NVIDIA RTX / driver API readiness checks, separate from certification.
-- Resolve installed CATIA EXE to its existing NVIDIA application profile.
-- Balanced CAD and Smooth viewport presets, explicit change preview.
-- Backup before writes, selective rollback and read-back verification.
-- Preserve NVIDIA advanced preview choice and all global settings.
-- 12 automated fake-driver checks passed; live GPU detection and CATIA executable resolution checked on RTX A5500 Laptop GPU / 596.71.
+The app is now a compact, no-selection launcher.
 
-Certification lookup is manual. This is not a performance benchmark or a promise of higher FPS. Windows compatibility scaling is used for high-DPI displays. Executable is unsigned.
+- No EXE path, profile, mode or preview checkbox is shown to the user.
+- Automatically checks NVIDIA Control Panel, the NVIDIA driver API, GPU family and an installed CATIA/3DEXPERIENCE profile.
+- Supports only NVIDIA RTX A series, RTX PRO and Quadro RTX workstation GPUs.
+- Refuses to apply settings on unsupported GPUs, missing Control Panel, absent CATIA profile or an open CATIA process.
+- Loads one fixed performance profile: maximum-performance power mode, no FPS cap, V-Sync off.
+- Keeps the user-selected NVIDIA Control Panel advanced-3D-settings preference untouched.
+- Backs up, applies and reads back all managed settings.
+- Compact welcome screen with a clear ready/warning result and help.
 
-Live apply/read-back/restore round-trip also passed on RTX A5500 Laptop GPU / 596.71. Original settings were restored after the test.
+Validation: 12 automated driver-transaction tests passed. Live readiness checks passed for NVIDIA RTX A5500 Laptop GPU / 596.71, NVIDIA Control Panel and installed CNEXT.exe → Dassault Systemes CATIA profile. A real apply/verify/restore round trip previously preserved the original driver settings.
