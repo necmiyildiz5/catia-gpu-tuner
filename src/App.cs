@@ -16,6 +16,7 @@ static class Program {
 }
 public sealed class MainForm:Form {
  static readonly string BackupRoot=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"CatiaGpuTuner","Backups");
+ static readonly string ConsentFile=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"CatiaGpuTuner","performance-profile-consent-v1");
  Label headline=new Label(),subhead=new Label(),summary=new Label(),details=new Label(); Button refresh,help,backups; bool running;
  public MainForm(){
   Text="CATIA GPU Tuner";ClientSize=new Size(760,420);MinimumSize=new Size(760,420);MaximumSize=new Size(760,420);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);BackColor=Color.FromArgb(19,27,39);ForeColor=Color.White;AutoScaleMode=AutoScaleMode.None;
@@ -32,10 +33,16 @@ public sealed class MainForm:Form {
  async void RefreshNow(){if(running)return;running=true;refresh.Enabled=false;UseWaitCursor=true;try{await Task.Yield();var readiness=SystemCheck.Inspect();details.Text=String.Join(Environment.NewLine,readiness.Lines);
    if(!readiness.Ready){summary.Text="UYARI — Ayarlar yüklenmedi";summary.BackColor=Color.FromArgb(114,65,45);details.Text+=Environment.NewLine+Environment.NewLine+"Bu program ayarları yalnızca desteklenen sistemde otomatik yükler. Mevcut ayarlarınız korunmuştur.";return;}
    if(Process.GetProcessesByName(Path.GetFileNameWithoutExtension(readiness.CadExe)).Length>0){summary.Text="CATIA açık — Ayarlar yüklenmedi";summary.BackColor=Color.FromArgb(114,65,45);details.Text+=Environment.NewLine+Environment.NewLine+"CATIA/3DEXPERIENCE’i kapatın ve ‘Sistemi yeniden denetle’yi kullanın. Mevcut ayarlar korunmuştur.";return;}
+   if(!File.Exists(ConsentFile) && !ConfirmFirstUse()){summary.Text="ONAY BEKLENİYOR — Ayarlar yüklenmedi";summary.BackColor=Color.FromArgb(114,65,45);details.Text+=Environment.NewLine+Environment.NewLine+"Ayarları uygulamak için güvenlik bildirimini onaylayın. Mevcut ayarlarınız değiştirilmedi.";return;}
    using(var driver=new NvDriver()){Engine.Apply(driver,readiness.CadExe,BackupRoot);summary.Text="HAZIR — CATIA performans ayarları yüklendi";summary.BackColor=Color.FromArgb(31,124,91);details.Text+=Environment.NewLine+Environment.NewLine+"✓ Güç yönetimi: Maksimum performans"+Environment.NewLine+"✓ Kare hızı sınırı: Kapalı"+Environment.NewLine+"✓ Dikey senkronizasyon: Kapalı"+Environment.NewLine+"✓ Yedek alındı ve sürücüden yeniden okunarak doğrulandı.";}
   }catch(Exception e){summary.Text="İŞLEM TAMAMLANAMADI — Ayarlar korunmuş olabilir";summary.BackColor=Color.FromArgb(133,53,54);details.Text+="\r\n\r\n"+e.Message;}
   finally{running=false;refresh.Enabled=true;UseWaitCursor=false;}
  }
+ bool ConfirmFirstUse(){var answer=MessageBox.Show(this,@"CATIA GPU Tuner NVIDIA’nın CATIA uygulama profilinde üç ayarı değiştirecektir: maksimum performans, sınırsız kare hızı ve V-Sync kapalı. Değişiklikten önce yedek alınır ve sonuç doğrulanır.
+
+Araç yalnızca desteklenen NVIDIA iş istasyonu GPU’larında kullanılmalıdır. Her iş istasyonu, sürücü ve CAD sürümü farklıdır; uygunluk ve üretim ortamındaki sonuç kullanıcı tarafından doğrulanmalıdır. Araca güvenmiyorsanız veya bu değişiklikleri kabul etmiyorsanız Devam Etmeyin.
+
+Devam etmek, ayarları kendi sorumluluğunuzda uygulamayı kabul ettiğiniz anlamına gelir.","İlk kullanım güvenlik bildirimi",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2);if(answer!=DialogResult.Yes)return false;Directory.CreateDirectory(Path.GetDirectoryName(ConsentFile));File.WriteAllText(ConsentFile,"accepted");return true;}
  void ShowHelp(){MessageBox.Show(this,@"CATIA GPU Tuner başlangıçta sistemi otomatik denetler ve desteklenen bilgisayarda ayarları yükler. Kullanıcıdan EXE veya profil seçmesi istenmez.
 
 Desteklenen GPU’lar
@@ -52,6 +59,8 @@ Yüklenen üç ayar
 
 Program, seçtiğiniz NVIDIA Control Panel ‘Use the advanced 3D image settings’ tercihini değiştirmez. Önce tam NVIDIA profil yedeği alınır; ayarlar sürücüden tekrar okunur. Yedekler LocalAppData/CatiaGpuTuner/Backups klasöründedir.
 
-Bu bir benchmark ya da sertifikasyon aracı değildir. Antialiasing, Threaded Optimization, OpenGL GPU, ECC ve diğer üretici/CATIA profil ayarları korunur.","Yardım",MessageBoxButtons.OK,MessageBoxIcon.Information); }
+Bu bir benchmark ya da sertifikasyon aracı değildir. Antialiasing, Threaded Optimization, OpenGL GPU, ECC ve diğer üretici/CATIA profil ayarları korunur.
+
+Güvenlik sınırı: Bu araç yalnızca desteklenen iş istasyonu GPU’larında kullanılmalıdır. Yedek ve doğrulama sağlansa da her bilgisayar, sürücü ve CAD sürümü farklıdır; sonuçları üretimde kullanmadan önce doğrulayın. Araca güvenmiyorsanız ayarları uygulamayın.","Yardım",MessageBoxButtons.OK,MessageBoxIcon.Information); }
 }
 }

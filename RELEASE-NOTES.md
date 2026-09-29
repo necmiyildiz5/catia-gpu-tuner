@@ -10,5 +10,7 @@ The app is now a compact, no-selection launcher.
 - Keeps the user-selected NVIDIA Control Panel advanced-3D-settings preference untouched.
 - Backs up, applies and reads back all managed settings.
 - Compact welcome screen with a clear ready/warning result and help.
+- First-use safety notice explains the exact three settings, creates no change until accepted, and records acceptance locally.
+- Help and README state the scope, backup/verification behavior and the user's responsibility to validate in their own CAD environment.
 
 Validation: 12 automated driver-transaction tests passed. Live readiness checks passed for NVIDIA RTX A5500 Laptop GPU / 596.71, NVIDIA Control Panel and installed CNEXT.exe → Dassault Systemes CATIA profile. A real apply/verify/restore round trip previously preserved the original driver settings.

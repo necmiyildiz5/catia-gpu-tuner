@@ -31,6 +31,10 @@ Before it writes, the app exports the complete NVIDIA DRS profile database and s
 
 No driver installation, power-plan change, registry import, thermal control, overclock, voltage change or telemetry is included.
 
+## Use at your own responsibility
+
+The app changes three NVIDIA **application-profile** settings only after its first-use confirmation. It creates a backup and verifies the written values, but every workstation, driver and CATIA/3DEXPERIENCE release can behave differently. Validate the outcome in your environment before production use. If you do not trust the tool or do not accept these changes, do not confirm the first-use dialog and no settings will be applied.
+
 ## Driver readiness versus certification
 
 The readiness check means the local driver, NVIDIA Control Panel, supported GPU and CATIA profile are usable. It does **not** claim that the driver is Dassault-certified. Certification depends on the exact workstation, GPU, Windows and CATIA/3DEXPERIENCE release; check the [official Dassault certification catalog](https://www.3ds.com/support/hardware-and-software).
